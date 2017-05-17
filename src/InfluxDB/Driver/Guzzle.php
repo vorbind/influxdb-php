@@ -127,7 +127,8 @@ class Guzzle implements DriverInterface, QueryDriverInterface
      */
     protected function getRequestParameters($data = null)
     {
-        $requestParameters = ['http_errors' => false];
+//        $requestParameters = ['http_errors' => false];
+        $requestParameters = [];
 
         if ($data) {
             $requestParameters += ['body' => $data];

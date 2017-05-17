@@ -178,7 +178,7 @@ class Client
         $driver = $this->getDriver();
 
         $parameters = [
-            'url' => 'query?' . http_build_query(array_merge(['q' => $query], $parameters)),
+            'url' => $this->baseURI . '/query?' . http_build_query(array_merge(['q' => $query], $parameters)),
             'database' => $database,
             'method' => 'get'
         ];
