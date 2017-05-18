@@ -220,6 +220,8 @@ class Client
             $parameters += ['auth' => [$this->username, $this->password]];
         }
 
+        $parameters["url"] = $this->baseURI . "/" . $parameters["url"];
+
         // set the given parameters
         $driver->setParameters($parameters);
 
