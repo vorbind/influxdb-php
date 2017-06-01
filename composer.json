@@ -1,9 +1,10 @@
 {
-    "name": "influxdb/influxdb-php",
+    "name": "influxdata/influxdb-php",
     "description": "InfluxDB client library for PHP",
     "license": "MIT",
     "keywords": [
         "influxdb",
+        "influxdata",
         "client",
         "time series",
         "influxdb client",
@@ -48,5 +49,8 @@
         "psr-4": {
             "InfluxDB\\Test\\": "tests"
         }
+    },
+    "suggest": {
+        "stefanotorresi/influxdb-php-async": "An asyncronous client for InfluxDB, implemented via ReactPHP."
     }
 }

@@ -4,11 +4,8 @@ namespace InfluxDB\Test;
 
 use InfluxDB\Client;
 use InfluxDB\Database;
-use InfluxDB\Driver\Guzzle;
 use InfluxDB\Point;
 use InfluxDB\ResultSet;
-use PHPUnit_Framework_MockObject_MockObject;
-use PHPUnit_Framework_TestCase;
 
 class DatabaseTest extends AbstractTest
 {
@@ -85,21 +82,25 @@ class DatabaseTest extends AbstractTest
         new Database(null, $this->mockClient);
     }
 
+    /**
+     * @expectedException \PHPUnit_Framework_Error_Deprecated
+     */
+    public function testIfNotExistsDeprecation()
+    {
+        $this->database->create(null, true);
+    }
+
     public function testCreate()
     {
         // test create with retention policy
-        $this->database->create($this->getTestRetentionPolicy('influx_test_db'), true);
+        $this->database->create($this->getTestRetentionPolicy('influx_test_db'));
         $this->assertEquals(
             'CREATE RETENTION POLICY "influx_test_db" ON "influx_test_db" DURATION 1d REPLICATION 1 DEFAULT',
             Client::$lastQuery
         );
 
-        // test creating a database without create if not exists
-        $this->database->create(null, true);
-        $this->assertEquals('CREATE DATABASE IF NOT EXISTS "influx_test_db"', Client::$lastQuery);
-
-        // test creating a database without create if not exists
-        $this->database->create(null, false);
+        // test creating a database without parameters
+        $this->database->create(null);
         $this->assertEquals('CREATE DATABASE "influx_test_db"', Client::$lastQuery);
 
 
@@ -149,6 +150,14 @@ class DatabaseTest extends AbstractTest
 
         $this->assertEquals(true, $this->database->writePoints(array($point1, $point2)));
 
+        $payload = [
+            (string) $point1,
+            (string) $point2
+        ];
+
+        $this->assertEquals(true, $this->database->writePayload($payload));
+
+
         $this->mockClient->expects($this->once())
             ->method('write')
             ->will($this->throwException(new \Exception('Test exception')));
@@ -185,7 +194,7 @@ class DatabaseTest extends AbstractTest
 
         // test handling of reserved keywords in database name
         $database->create();
-        $this->assertEquals('CREATE DATABASE IF NOT EXISTS "stats"', Client::$lastQuery);
+        $this->assertEquals('CREATE DATABASE "stats"', Client::$lastQuery);
 
         $database->listRetentionPolicies();
         $this->assertEquals('SHOW RETENTION POLICIES ON "stats"', Client::$lastQuery);

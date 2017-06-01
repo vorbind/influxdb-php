@@ -74,6 +74,41 @@ class PointTest extends \PHPUnit_Framework_TestCase
 
     }
 
+    public function testFieldValueStringEscaping()
+    {
+        $expected = 'instance,host=server01,region=us-west spaces="string with spaces",doublequote="the \" is escaped"';
+        $point = $this->getPoint(null);
+
+        $point->setFields(['spaces' => 'string with spaces', 'doublequote' => 'the " is escaped']);
+
+        $this->assertEquals($expected, (string) $point);
+    }
+
+    public function testTagBooleanValueEscaping() {
+        $expected = 'instance,bool_tag=false,value_tag=value cpucount=10i,free=1i,test="string",bool=false,value=1.11';
+        $point = $this->getPoint(null);
+
+        $point->setTags(['bool_tag' => false, 'value_tag' => 'value']);
+
+        $this->assertEquals($expected, (string) $point);
+    }
+
+    public function testTagNullValueEscaping() {
+        $expected = 'instance,null_tag=null,value_tag=value cpucount=10i,free=1i,test="string",bool=false,value=1.11';
+        $point = $this->getPoint(null);
+
+        $point->setTags(['null_tag' => null, 'value_tag' => 'value']);
+
+        $this->assertEquals($expected, (string) $point);
+    }
+    public function testTagEmptyValueEscaping() {
+        $expected = 'instance,empty_tag="",whitespace=\ ,value_tag=value cpucount=10i,free=1i,test="string",bool=false,value=1.11';
+        $point = $this->getPoint(null);
+
+        $point->setTags(['empty_tag' => '', 'whitespace' => ' ', 'value_tag' => 'value']);
+
+        $this->assertEquals($expected, (string) $point);
+    }
 
     /**
      * Provide wrong timestamp value for testing.

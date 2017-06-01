@@ -44,7 +44,7 @@ class Client
     protected $password = '';
 
     /**
-     * @var int
+     * @var float
      */
     protected $timeout = 0;
 
@@ -72,11 +72,6 @@ class Client
      * @var
      */
     protected $baseURI;
-
-    /**
-     * @var \Guzzle\Http\Client
-     */
-    protected $httpClient;
 
     /**
      * @var array
@@ -118,7 +113,7 @@ class Client
         $this->port = (int) $port;
         $this->username = (string) $username;
         $this->password = (string) $password;
-        $this->timeout = (int) $timeout;
+        $this->timeout = (float) $timeout;
         $this->verifySSL = (bool) $verifySSL;
 
         if ($ssl) {
@@ -205,14 +200,14 @@ class Client
     /**
      * Write data
      *
-     * @param array           $parameters
-     * @param string          $payload
+     * @param array        $parameters
+     * @param string|array $payload     InfluxDB payload (Or array of payloads) that conform to the Line syntax.
      *
      * @return bool
      */
     public function write(array $parameters, $payload)
     {
-        // retrive the driver
+        // retrieve the driver
         $driver = $this->getDriver();
 
         // add authentication to the driver if needed
@@ -226,7 +221,11 @@ class Client
         $driver->setParameters($parameters);
 
         // send the points to influxDB
-        $driver->write(implode("\n", $payload));
+        if (is_array($payload)) {
+            $driver->write(implode("\n", $payload));
+        } else {
+            $driver->write($payload);
+        }
 
         return $driver->isSuccess();
     }
@@ -265,7 +264,7 @@ class Client
      * @param  int    $timeout
      * @param  bool   $verifySSL
      *
-*@return Client|Database
+     * @return Client|Database
      * @throws ClientException
      */
     public static function fromDSN($dsn, $timeout = 0, $verifySSL = false)
@@ -286,13 +285,13 @@ class Client
         }
 
         $ssl = $modifier === 'https' ? true : false;
-        $dbName = $connParams['path'] ? substr($connParams['path'], 1) : null;
+        $dbName = isset($connParams['path']) ? substr($connParams['path'], 1) : null;
 
         $client = new self(
             $connParams['host'],
             $connParams['port'],
-            $connParams['user'],
-            $connParams['pass'],
+            isset($connParams['user']) ? $connParams['user'] : '',
+            isset($connParams['pass']) ? $connParams['pass'] : '',
             $ssl,
             $verifySSL,
             $timeout
@@ -315,7 +314,7 @@ class Client
     }
 
     /**
-     * @return int
+     * @return float
      */
     public function getTimeout()
     {

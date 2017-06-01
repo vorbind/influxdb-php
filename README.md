@@ -16,7 +16,7 @@ This way there will be a common abstraction library between different programmin
 Installation can be done with composer:
 
 ``` bash
-$ composer require influxdb/influxdb-php:dev-master
+$ composer require influxdb/influxdb-php
 ```
 
 ### NOTE for PHP 5.3 and PHP 5.4 users
@@ -324,6 +324,26 @@ $client->admin->revoke(\InfluxDB\Client\Admin::PRIVILEGE_ALL, 'admin_user');
 
 
 ## Changelog
+
+###1.14.3
+* Deprecate IF NOT EXISTS clause in database creation
+
+###1.14.2
+* Fix Notice when calling InfluxDB\Client::fromDSN without username or password
+* fixed Guzzle client timeout is float
+* Fix annotation
+* Remove unused property
+* Fixed misspelling
+* Fixed tag with Boolean/Null value trigger parse error
+
+###1.4.1
+* Fixed bug: Escape field values as per line protocol. 
+
+###1.4.0
+* Updating Influx Database with support for writing direct payloads, thanks @virgofx 
+
+###1.3.1
+* Added ability to write data to a specific retention policy, thanks @virgofx !
 
 ###1.3.0
 * Added quoting of dbname in queries

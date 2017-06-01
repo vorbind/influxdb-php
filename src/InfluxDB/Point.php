@@ -39,7 +39,7 @@ class Point
      * @param  float  $value
      * @param  array  $tags
      * @param  array  $additionalFields
-     * @param  null   $timestamp
+     * @param  int    $timestamp
      * @throws DatabaseException
      */
     public function __construct(
@@ -54,7 +54,7 @@ class Point
         }
 
         $this->measurement = (string) $measurement;
-        $this->tags = $tags;
+        $this->setTags($tags);
         $fields = $additionalFields;
 
         if ($value !== null) {
@@ -78,14 +78,13 @@ class Point
      */
     public function __toString()
     {
-
         $string = $this->measurement;
 
         if (count($this->tags) > 0) {
-            $string .=  ',' . $this->arrayToString($this->escapeCharacters($this->tags));
+            $string .=  ',' . $this->arrayToString($this->escapeCharacters($this->tags, true));
         }
 
-        $string .= ' ' . $this->arrayToString($this->escapeCharacters($this->fields));
+        $string .= ' ' . $this->arrayToString($this->escapeCharacters($this->fields, false));
 
         if ($this->timestamp) {
             $string .= ' '.$this->timestamp;
@@ -123,6 +122,15 @@ class Point
      */
     public function setTags($tags)
     {
+        foreach ($tags as &$tag) {
+            if ($tag === '') {
+                $tag = '""';
+            } elseif (is_bool($tag)) {
+                $tag = ($tag ? "true" : "false");
+            } elseif (is_null($tag)) {
+                $tag = ("null");
+            }
+        }
         $this->tags = $tags;
     }
 
@@ -143,9 +151,11 @@ class Point
             if (is_integer($field)) {
                 $field = sprintf('%di', $field);
             } elseif (is_string($field)) {
-                $field = sprintf("\"%s\"", $field);
+                $field = $this->escapeFieldValue($field);
             } elseif (is_bool($field)) {
                 $field = ($field ? "true" : "false");
+            } elseif (is_null($field)) {
+                $field = $this->escapeFieldValue("null");
             }
         }
 
@@ -169,20 +179,33 @@ class Point
     }
 
     /**
-     * Escapes invalid characters in both the array key and array value
+     * Escapes invalid characters in both the array key and optionally the array value
      *
      * @param array $arr
+     * @param bool $escapeValues
      * @return array
      */
-    private function escapeCharacters(array $arr)
+    private function escapeCharacters(array $arr, $escapeValues)
     {
         $returnArr = [];
 
         foreach ($arr as $key => $value) {
-            $returnArr[$this->addSlashes($key)] = $this->addSlashes($value);
+            $returnArr[$this->addSlashes($key)] = $escapeValues ? $this->addSlashes($value) : $value;
         }
 
         return $returnArr;
+    }
+
+    /*
+     * Returns string double-quoted and double-quotes escaped per Influx write protocol syntax
+     *
+     * @param string $value
+     * @return string
+     */
+    private function escapeFieldValue($value)
+    {
+        $escapedValue = str_replace('"', '\"', $value);
+        return sprintf('"%s"', $escapedValue);
     }
 
     /**
@@ -225,7 +248,6 @@ class Point
      */
     private function isValidTimeStamp($timestamp)
     {
-
         // if the code is run on a 32bit system, loosely check if the timestamp is a valid numeric
         if (PHP_INT_SIZE == 4 && is_numeric($timestamp)) {
             return true;
@@ -244,7 +266,5 @@ class Point
         }
 
         return true;
-
-
     }
 }

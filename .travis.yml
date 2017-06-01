@@ -40,7 +40,7 @@ before_install:
 
 install:
   - composer selfupdate
-  - composer install --no-interaction --ignore-platform-reqs
+  - composer install --no-interaction
 
 addons:
   code_climate:
